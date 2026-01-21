@@ -1,143 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>ACL Runner</title>
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="ACL Runner">
-
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            background: #0f172a;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #e5e7eb;
-        }
-
-        .app {
-            width: 90%;
-            max-width: 420px;
-            background: #020617;
-            border-radius: 14px;
-            padding: 20px;
-            box-shadow: 0 0 25px rgba(0,0,0,0.4);
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            font-size: 16px;
-            font-weight: bold;
-            border: none;
-            border-radius: 10px;
-            background: #22c55e;
-            color: #020617;
-            cursor: pointer;
-        }
-
-        button:disabled {
-            background: #64748b;
-            cursor: not-allowed;
-        }
-
-        .log {
-            margin-top: 15px;
-            background: #020617;
-            border: 1px solid #334155;
-            border-radius: 10px;
-            padding: 12px;
-            max-height: 320px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            font-size: 14px;
-        }
-
-        .success {
-            color: #22c55e;
-            font-weight: bold;
-        }
-
-        .error {
-            color: #ef4444;
-            font-weight: bold;
-        }
-    </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACL Runner</title>
 </head>
-<body>
+<body style="font-family: Arial; padding: 40px; text-align: center;">
 
-<div class="app">
-    <h2>ACL Runner</h2>
-    <button id="runBtn">Run ACL</button>
-    <div id="log" class="log"></div>
-</div>
+  <h2>ACL Runner</h2>
+
+  <button
+    onclick="runACL()"
+    style="padding: 15px 25px; font-size: 18px;"
+  >
+    Run ACL
+  </button>
+
+  <pre id="output" style="text-align:left; margin-top:20px;"></pre>
 
 <script>
-    const API_URL = "https://m2i-test-api2.azurewebsites.net/api/SeedDatabase";
-    const runBtn = document.getElementById("runBtn");
-    const logBox = document.getElementById("log");
+async function runACL() {
+  document.getElementById("output").textContent = "Running ACL...";
 
-    function log(message, type = "") {
-        const div = document.createElement("div");
-        div.textContent = message;
-        if (type) div.className = type;
-        logBox.appendChild(div);
-        logBox.scrollTop = logBox.scrollHeight;
-    }
+  const response = await fetch("/api/run-acl");
+  const result = await response.json();
 
-    async function runACL() {
-        runBtn.disabled = true;
-        logBox.innerHTML = "";
-
-        try {
-            log("Running DELETE API...");
-
-            // DELETE call
-            const deleteResponse = await fetch(API_URL, {
-                method: "DELETE"
-            });
-
-            const deleteResult = await deleteResponse.json();
-
-            log("DELETE Response:");
-            log(JSON.stringify(deleteResult, null, 2));
-
-            // Condition check
-            if (deleteResult.data === true) {
-                log("DELETE successful. Running GET API...", "success");
-
-                // GET call
-                const getResponse = await fetch(API_URL);
-                const getResult = await getResponse.json();
-
-                log("GET Response:");
-                log(JSON.stringify(getResult, null, 2));
-
-                log("ACL run completed ✅", "success");
-            } else {
-                log("ACL run failed ❌ (data is not true)", "error");
-            }
-
-        } catch (err) {
-            log("Unexpected error occurred ❌", "error");
-            log(err.toString(), "error");
-        } finally {
-            runBtn.disabled = false;
-        }
-    }
-
-    runBtn.addEventListener("click", runACL);
+  document.getElementById("output").textContent =
+    JSON.stringify(result, null, 2);
+}
 </script>
 
 </body>
