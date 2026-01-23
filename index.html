@@ -1,31 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ACL Runner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ACL Runner</title>
+
+<style>
+  body {
+    font-family: Arial;
+    padding: 20px;
+    background: #f7f7f7;
+  }
+  button {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+  }
+  .log {
+    margin-top: 20px;
+    padding: 12px;
+    border-radius: 6px;
+    background: white;
+    font-size: 14px;
+  }
+  .success { color: green; }
+  .error { color: red; }
+  .running { color: orange; }
+</style>
 </head>
-<body style="font-family: Arial; padding: 40px; text-align: center;">
 
-  <h2>ACL Runner</h2>
+<body>
 
-  <button
-    onclick="runACL()"
-    style="padding: 15px 25px; font-size: 18px;"
-  >
-    Run ACL
-  </button>
+<h2>ACL Runner</h2>
+<button onclick="runACL()">Run ACL</button>
 
-  <pre id="output" style="text-align:left; margin-top:20px;"></pre>
+<div id="output" class="log"></div>
 
 <script>
 async function runACL() {
-  document.getElementById("output").textContent = "Running ACL...";
+  const output = document.getElementById("output");
+  output.innerHTML = "⏳ Starting ACL run...<br>";
 
-  const response = await fetch("/api/run-acl");
-  const result = await response.json();
+  try {
+    const res = await fetch("/api/run-acl");
+    const data = await res.json();
 
-  document.getElementById("output").textContent =
-    JSON.stringify(result, null, 2);
+    data.steps.forEach(s => {
+      const cls =
+        s.status === "success" ? "success" :
+        s.status === "error" ? "error" : "running";
+
+      output.innerHTML +=
+        `<div class="${cls}">
+          ${s.status === "success" ? "✅" : s.status === "error" ? "❌" : "⏳"}
+          <b>${s.step}</b>
+          ${s.message ? " - " + s.message : ""}
+        </div>`;
+    });
+
+    if (data.success) {
+      output.innerHTML += `<div class="success"><b>🎉 ACL run completed</b></div>`;
+    }
+
+  } catch (e) {
+    output.innerHTML += `<div class="error">❌ UI Error: ${e.message}</div>`;
+  }
 }
 </script>
 
