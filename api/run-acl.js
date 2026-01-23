@@ -1,102 +1,92 @@
 export default async function handler(req, res) {
-  const result = {
-    steps: [],
-    success: false
-  };
-
   try {
-    /* =======================
-       STEP 1: TOKEN
-       ======================= */
-    result.steps.push({ step: "TOKEN", status: "running" });
+    const steps = [];
 
-    const tokenRes = await fetch(
-      "https://m2itest.b2clogin.com/m2itest.onmicrosoft.com/B2C_1_M2I_SignIn/oauth2/v2.0/token",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          grant_type: "authorization_code",
-          client_id: "869dafaa-18b9-4020-a3da-6ceaffbcd6fe",
-          scope: "https://m2itest.onmicrosoft.com/b2c-m2i-test/demo.read offline_access",
-          code: "eyJraWQiOiJjcGltY29yZV8wOTI1MjAxNSIsInZlciI6IjEuMCIsInppcCI6IkRlZmxhdGUiLCJzZXIiOiIxLjAifQ..PAZn2IVVUhNGzo2W.O3KT9iUCanqdZsc1HeTUwbxZ4K3ETGEpNbEwCDxqifKSKkW7QAG82jDwQC6Jq7BEwG_JJ3NiVwJA-nqF4Xqriy8WJg9dfF2ImrXa1b4jwyLu4eAH5kOzOJzC7cL9jGdjzZ4g6uAJlgEQtpjrZ30u7p5Qg0YJ-LekSdD86KgmgnfAqNnPDZVIGpqVVAT-BaPjS0jZC5AwaTLdg3aLKJsH86lBgB1ISUo3yAF4dkwjc8nnVL5JGU4Tx3BPDxENT92F-h4otSkt2gBFzdggYgeSybDYoDOuFNHPL2uWDrwVm5yi1s6QbpivfjQRCbPr39kzevRX_xfowf82ghI2b4DlAa7zwINd1ICV83Uziq9lyHwfblUy5sbKw9TtNjGO9qjvUUBYs0-sTI8QoG_NkrTmxKMhmrBLjTKBxbt4NJYi1mTXXfCu0TMNq6dnPd14shWGItTEeZxgXxCZ7srlTBMQ7oNGtCy2aO9wV8OdoQ1KzVXFMokcNEvtnABVP8GAMXNrds0xKXyZR1A8tqz35OJOGFQ4_vvIpN_0lIJ7bTlzXxhAIDWF9pkR8KkGETo8tPRB6N54MTfskMHGIpYah2kyNm06ImzhoLjprJBT6WezAYLunSxxBj2RNNqFlGYltYk_IHmal9Ji2lGInYhHip1qGcKDUb0t5TIgk5lLNntqvOKGnZ25N7tSY_ykNlY6IMxjfO_nHrB1Aadprt0fAPbMQF4QMFlPfDicdYp6QIidHBE43R313-NvERy043iJI7hEv8QyxnKPyA-m4w.tbmqu7odPtjwhLv_9a0Dkg",
-          redirect_uri: "https://testservicing.azureedge.net/",
-          client_secret: "qu-8Q~GxfcGaae8-hpQiMTU18~eu3GJleFPh~aVQ",
-          code_verifier: "YTFjNjI1OWYzMzA3MTI4ZDY2Njg5M2RkNmVjNDE5YmEyZGRhOGYyM2IzNjdmZWFhMTQ1ODg3NDcxY2Nl"
-        })
-      }
-    );
+    // -------------------------------
+    // STEP 1: HARDCODED ACCESS TOKEN
+    // -------------------------------
+    const ACCESS_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6Ilg1ZVhrNHh5b2pORnVtMWtsMll0djhkbE5QNC1jNTdkTzZRR1RWQndhTmsiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiI4NjlkYWZhYS0xOGI5LTQwMjAtYTNkYS02Y2VhZmZiY2Q2ZmUiLCJpc3MiOiJodHRwczovL20yaXRlc3QuYjJjbG9naW4uY29tLzVhNjc0ODc0LTA5MmMtNDA2NS1iMmMxLWIzOTlhODZhNzVhZS92Mi4wLyIsImV4cCI6MTc2OTE2NDE1NiwibmJmIjoxNzY5MTYwNTU2LCJvaWQiOiJlODIzYWFlNC02YmRmLTQxMmItODQ2NS05NTQ3NmEwYmFlNDMiLCJzdWIiOiJlODIzYWFlNC02YmRmLTQxMmItODQ2NS05NTQ3NmEwYmFlNDMiLCJnaXZlbl9uYW1lIjoiYXNkIiwibmFtZSI6ImFzZCIsImVtYWlscyI6WyJudXB1ckBkaHhzb2Z0d2FyZS5jb20iXSwidGZwIjoiQjJDXzFfTTJJX1NpZ25JbiIsInNjcCI6ImRlbW8ucmVhZCIsImF6cCI6Ijg2OWRhZmFhLTE4YjktNDAyMC1hM2RhLTZjZWFmZmJjZDZmZSIsInZlciI6IjEuMCIsImlhdCI6MTc2OTE2MDU1Nn0.ju3Eqhu8TBHqcropQhq5tHIAcoulLctBDk-9k7Vmmcz3S4UZxkLGz5G1kXq7faqzzBdRqoGNY_PH2vT1WBzWp_DC_fSsfoASMwoztOKtGp9nMll2sbob8tNn-jB787BX84oHDziXuw2QWnQdexoWSrYq4InDmC0DNypcZq79ZmSZKDxaTo-TTI4ktlr4m7o5FayPdmLGl8jKj9k_s67VNwxIJ02oVn3oG4Qd8hA5qk0hMB8W4aJ2KHVBpW4fzTfNn5b0hfPubay2qcdTGSUHos7h9MGmFFrPBtQLK50qzq5p01qYAX4aBL18q5QhBwgL8s4R1g0bkBSrR9l35AhoPA";
 
-    const tokenData = await tokenRes.json();
-
-    if (!tokenData.access_token) {
-      result.steps[result.steps.length - 1] = {
+    if (!ACCESS_TOKEN || ACCESS_TOKEN.split(".").length !== 3) {
+      steps.push({
         step: "TOKEN",
         status: "error",
-        message: tokenData.error_description || "Invalid token response"
-      };
-      return res.status(400).json(result);
+        message: "Invalid or malformed access token"
+      });
+      return res.status(401).json({ success: false, steps });
     }
 
-    result.steps[result.steps.length - 1].status = "success";
-    const accessToken = tokenData.access_token;
+    steps.push({
+      step: "TOKEN",
+      status: "success",
+      message: "Access token loaded"
+    });
 
-    /* =======================
-       STEP 2: DELETE
-       ======================= */
-    result.steps.push({ step: "DELETE SeedDatabase", status: "running" });
-
-    const deleteRes = await fetch(
+    // --------------------------------
+    // STEP 2: DELETE SeedDatabase
+    // --------------------------------
+    const deleteResponse = await fetch(
       "https://m2i-test-api2.azurewebsites.net/api/SeedDatabase",
       {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${accessToken}` }
+        headers: {
+          Authorization: `Bearer ${ACCESS_TOKEN}`
+        }
       }
     );
 
-    const deleteData = await deleteRes.json();
+    const deleteResult = await deleteResponse.json();
 
-    if (!deleteData?.data) {
-      result.steps[result.steps.length - 1] = {
-        step: "DELETE SeedDatabase",
-        status: "error",
-        message: "DELETE API failed",
-        response: deleteData
-      };
-      return res.status(400).json(result);
+    steps.push({
+      step: "DELETE",
+      status: deleteResult?.data === true ? "success" : "error",
+      message: JSON.stringify(deleteResult)
+    });
+
+    if (deleteResult?.data !== true) {
+      return res.status(400).json({ success: false, steps });
     }
 
-    result.steps[result.steps.length - 1].status = "success";
-
-    /* =======================
-       STEP 3: GET
-       ======================= */
-    result.steps.push({ step: "GET SeedDatabase", status: "running" });
-
-    const getRes = await fetch(
+    // --------------------------------
+    // STEP 3: GET SeedDatabase
+    // --------------------------------
+    const getResponse = await fetch(
       "https://m2i-test-api2.azurewebsites.net/api/SeedDatabase",
       {
-        headers: { Authorization: `Bearer ${accessToken}` }
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${ACCESS_TOKEN}`
+        }
       }
     );
 
-    const getData = await getRes.json();
+    const getResult = await getResponse.json();
 
-    result.steps[result.steps.length - 1] = {
-      step: "GET SeedDatabase",
+    steps.push({
+      step: "GET",
       status: "success",
-      response: getData
-    };
+      message: JSON.stringify(getResult)
+    });
 
-    result.success = true;
-    return res.status(200).json(result);
+    // --------------------------------
+    // DONE
+    // --------------------------------
+    return res.json({
+      success: true,
+      steps,
+      message: "✅ ACL run completed successfully"
+    });
 
   } catch (err) {
-    result.steps.push({
-      step: "UNEXPECTED ERROR",
-      status: "error",
-      message: err.message
+    return res.status(500).json({
+      success: false,
+      steps: [
+        {
+          step: "SYSTEM",
+          status: "error",
+          message: err.message
+        }
+      ]
     });
-    return res.status(500).json(result);
   }
 }
