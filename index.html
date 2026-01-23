@@ -1,74 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ACL Runner</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ACL Runner</title>
 
-<style>
-  body {
-    font-family: Arial;
-    padding: 20px;
-    background: #f7f7f7;
-  }
-  button {
-    width: 100%;
-    padding: 15px;
-    font-size: 18px;
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 8px;
-  }
-  .log {
-    margin-top: 20px;
-    padding: 12px;
-    border-radius: 6px;
-    background: white;
-    font-size: 14px;
-  }
-  .success { color: green; }
-  .error { color: red; }
-  .running { color: orange; }
-</style>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .card {
+      background: #020617;
+      padding: 20px;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #22c55e;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:disabled {
+      background: #64748b;
+    }
+
+    .log {
+      margin-top: 15px;
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .success { color: #22c55e; }
+    .error { color: #ef4444; }
+    .info { color: #38bdf8; }
+  </style>
 </head>
-
 <body>
 
-<h2>ACL Runner</h2>
-<button onclick="runACL()">Run ACL</button>
-
-<div id="output" class="log"></div>
+  <div class="card">
+    <h2>🚀 ACL Runner</h2>
+    <button id="runBtn">Run ACL</button>
+    <div id="output" class="log"></div>
+  </div>
 
 <script>
-async function runACL() {
-  const output = document.getElementById("output");
-  output.innerHTML = "⏳ Starting ACL run...<br>";
+const btn = document.getElementById("runBtn");
+const output = document.getElementById("output");
+
+btn.onclick = async () => {
+  btn.disabled = true;
+  output.innerHTML = "⏳ Starting ACL run...\n";
 
   try {
-    const res = await fetch("/api/run-acl");
+    const res = await fetch(
+      "https://acl-runner-git-main-bapuji999s-projects.vercel.app/api/run-acl"
+    );
+
     const data = await res.json();
 
-    data.steps.forEach(s => {
-      const cls =
-        s.status === "success" ? "success" :
-        s.status === "error" ? "error" : "running";
-
-      output.innerHTML +=
-        `<div class="${cls}">
-          ${s.status === "success" ? "✅" : s.status === "error" ? "❌" : "⏳"}
-          <b>${s.step}</b>
-          ${s.message ? " - " + s.message : ""}
-        </div>`;
+    data.steps.forEach(step => {
+      const cls = step.status === "success" ? "success" : "error";
+      output.innerHTML += `<span class="${cls}">
+${step.status === "success" ? "✅" : "❌"} ${step.step} - ${step.message}
+</span>\n`;
     });
 
     if (data.success) {
-      output.innerHTML += `<div class="success"><b>🎉 ACL run completed</b></div>`;
+      output.innerHTML += "\n🎉 ACL RUN COMPLETED";
     }
 
-  } catch (e) {
-    output.innerHTML += `<div class="error">❌ UI Error: ${e.message}</div>`;
+  } catch (err) {
+    output.innerHTML += `\n❌ SYSTEM ERROR: ${err.message}`;
   }
-}
+
+  btn.disabled = false;
+};
 </script>
 
 </body>
